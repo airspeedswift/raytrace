@@ -1,11 +1,10 @@
 import Darwin
 
-func color(_ r: ray, _ world: hitable, _ depth: Int) -> vec3 {
-    var rec = hit_record()
-    if (world.hit(r, 0.001, Double(MAXFLOAT), &rec)) {
+func color<H: Hitable>(_ r: ray, _ world: H, _ depth: Int) -> vec3 {
+    if let rec = world.hit(r, 0.001, Double(MAXFLOAT)) {
         var scattered = ray()
         var attenuation = vec3()
-        if (depth < 50 && rec.mat_ptr.scatter(r, rec, &attenuation, &scattered)) {
+        if (depth < 50 && rec.mat_ptr(r, rec, &attenuation, &scattered)) {
             return attenuation*color(scattered, world, depth+1);
         }
         else {
@@ -19,32 +18,32 @@ func color(_ r: ray, _ world: hitable, _ depth: Int) -> vec3 {
     }
 }
 
-func random_scene() -> hitable {
-    var list: [hitable] = []
+func random_scene() -> hitable_list {
+    var list: [sphere] = []
     list.append(sphere(vec3(0,-1000,0), 1000, lambertian(vec3(0.5, 0.5, 0.5))))
-//    for a in -11..<11 {
-//        for b in -11..<11 {
-//            let choose_mat = drand48();
-//            let center = vec3(Double(a)+0.9*drand48(),0.2,Double(b)+0.9*drand48());
-//            if ((center-vec3(4,0.2,0)).length > 0.9) {
-//                if (choose_mat < 0.8) { // diffuse
-//                    list.append(sphere(center, 0.2, lambertian(vec3(drand48()*drand48(), drand48()*drand48(), drand48()*drand48()))))
-//                }
-//                else if (choose_mat < 0.95) { // metal
-//                    list.append(sphere(center, 0.2,
-//                                       metal(vec3(0.5*(1 + drand48()), 0.5*(1 + drand48()), 0.5*(1 + drand48())), 0.5*drand48())))
-//                }
-//                else { // glass
-//                    list.append(sphere(center, 0.2, dielectric(1.5)))
-//                }
-//            }
-//        }
-//    }
-
+    for a in -11..<11 {
+        for b in -11..<11 {
+            let choose_mat = drand48();
+            let center = vec3(Double(a)+0.9*drand48(),0.2,Double(b)+0.9*drand48());
+            if ((center-vec3(4,0.2,0)).length > 0.9) {
+                if (choose_mat < 0.8) { // diffuse
+                    list.append(sphere(center, 0.2, lambertian(vec3(drand48()*drand48(), drand48()*drand48(), drand48()*drand48()))))
+                }
+                else if (choose_mat < 0.95) { // metal
+                    list.append(sphere(center, 0.2,
+                                       metal(vec3(0.5*(1 + drand48()), 0.5*(1 + drand48()), 0.5*(1 + drand48())), 0.5*drand48())))
+                }
+                else { // glass
+                    list.append(sphere(center, 0.2, dielectric(1.5)))
+                }
+            }
+        }
+    }
+    
     list.append(sphere(vec3(0, 1, 0), 1.0, dielectric(1.5)))
     list.append(sphere(vec3(-4, 1, 0), 1.0, lambertian(vec3(0.4, 0.2, 0.1))))
     list.append(sphere(vec3(4, 1, 0), 1.0, metal(vec3(0.7,0.6,0.5), 0.0)))
-
+    
     return hitable_list(list);
 }
 
@@ -78,7 +77,8 @@ for j in (0..<ny).reversed() {
         let ir = Int(255.99*col[0]);
         let ig = Int(255.99*col[1]);
         let ib = Int(255.99*col[2]);
-
+        
         print("\(ir) \(ig) \(ib)")
     }
 }
+

@@ -8,7 +8,7 @@ func random_in_unit_disk() -> vec3 {
     return p;
 }
 
-class camera {
+struct camera {
     init(_ lookfrom: vec3, _ lookat: vec3, _ vup: vec3, _ vfov: Double, _ aspect: Double, _ aperature: Double, _ focus_dist: Double) { // vfov is the top to bottom in degrees
         lens_radius = aperature / 2;
         let theta = vfov*M_PI/180;
@@ -34,4 +34,4 @@ class camera {
     let vertical: vec3;
     let u, v, w: vec3;
     let lens_radius: Double;
-};
+}

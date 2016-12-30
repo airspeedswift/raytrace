@@ -31,39 +31,29 @@ func random_in_unit_sphere() -> vec3 {
     return p
 }
 
-class material {
-    func scatter(_ r_in: ray, _ rec: hit_record, _ attenuation: inout vec3, _ scattered: inout ray) -> Bool {
-        return false
-    }
-}
+typealias material = (_ r_in: ray, _ rec: hit_record, _ attenuation: inout vec3, _ scattered: inout ray) -> Bool
 
-class lambertian : material {
-    init(_ a: vec3) { albedo = a }
-    override func scatter(_ r_in: ray, _ rec: hit_record, _ attenuation: inout vec3, _ scattered: inout ray) -> Bool {
+func lambertian(_ albedo: vec3) -> material {
+    return { (_ r_in: ray, _ rec: hit_record, _ attenuation: inout vec3, _ scattered: inout ray) -> Bool in
         let target = rec.p + rec.normal + random_in_unit_sphere()
         scattered = ray(rec.p, target-rec.p)
         attenuation = albedo
         return true
     }
-
-    let albedo: vec3
 }
 
-class metal : material {
-    init(_ a: vec3, _ f: Double) { albedo = a; if (f < 1) {fuzz = f } else { fuzz = 1 } }
-    override func scatter(_ r_in: ray, _ rec: hit_record, _ attenuation: inout vec3, _ scattered: inout ray) -> Bool {
+func metal(_ albedo: vec3, _ f: Double) -> material {
+    let fuzz = f < 1 ? f : 1
+    return { (_ r_in: ray, _ rec: hit_record, _ attenuation: inout vec3, _ scattered: inout ray) -> Bool in
         let reflected = reflect(unit_vector(r_in.direction), rec.normal)
         scattered = ray(rec.p, reflected + fuzz*random_in_unit_sphere())
         attenuation = albedo
         return (dot(scattered.direction, rec.normal) > 0)
     }
-    let albedo: vec3
-    let fuzz: Double
 }
 
-class dielectric : material {
-    init(_ ri: Double) { ref_idx = ri }
-    override func scatter(_ r_in: ray, _ rec: hit_record, _ attenuation: inout vec3, _ scattered: inout ray) -> Bool {
+func dielectric(_ ref_idx: Double) -> material {
+    return { (_ r_in: ray, _ rec: hit_record, _ attenuation: inout vec3, _ scattered: inout ray) -> Bool in
         let outward_normal: vec3
         let reflected = reflect(r_in.direction, rec.normal)
         let ni_over_nt: Double
@@ -94,5 +84,4 @@ class dielectric : material {
         }
         return true;
     }
-    let ref_idx: Double
 }
